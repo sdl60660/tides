@@ -35,7 +35,7 @@ export const init = async ({
     starTexture.encoding = THREE.sRGBEncoding;
     scene.background = starTexture;
 
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 15000);
+    const camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 15000);
 
     const shadersPromises = [
         loadFile("shaders/earth/vertex.glsl"),
@@ -66,7 +66,7 @@ export const init = async ({
     globe.rotation.y = defaultRotation;
     scene.add(globe);
 
-    camera.position.z = 500;
+    camera.position.z = 700;
 
     const renderer = new THREE.WebGLRenderer({
         powerPreference: "high-performance",
@@ -78,7 +78,7 @@ export const init = async ({
 
     const controls = new OrbitControls(camera, canvas);
     controls.minDistance = 250;
-    controls.maxDistance = 1100;
+    controls.maxDistance = 1600;
     controls.enabled = controlsEnabled;
 
     const moon = await addMoon({ scene });
@@ -137,7 +137,7 @@ const addMoon = async ({ scene }) => {
     });
 
     const moonMesh = new THREE.Mesh(geometry, material);
-    moonMesh.position.set(0, 20, 400);
+    moonMesh.position.set(200, 20, 400);
     scene.add(moonMesh);
 
     return moonMesh;

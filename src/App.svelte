@@ -3,9 +3,9 @@
 	import { createScene, animate } from "./scene";
 	import * as THREE from "three";
 
-	export let bumpMap: string = "textures/earth-height.png";
-	export let earthTexture: string = "textures/satellite-earth.jpg";
-	// export let earthTexture: string = "textures/8k_earth_daymap.jpeg";
+	export let bumpMap: string = "textures/earth/earth-height.png";
+	export let earthTexture: string = "textures/earth/satellite-earth.jpg";
+	// export let earthTexture: string = "textures/earth/8k_earth_daymap.jpeg";
 
 	export let defaultRotation = 0;
 	export let controlsEnabled: boolean = true;

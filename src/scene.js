@@ -24,22 +24,18 @@ const textureloader = new THREE.TextureLoader();
 
 export const init = async ({
     canvas,
-    earthTexture = "textures/satellite-earth.jpg",
-    bumpMap = "textures/earth-height.png",
+    earthTexture = "textures/earth/satellite-earth.jpg",
+    bumpMap = "textures/earth/earth-height.png",
     controlsEnabled = true,
     defaultRotation = 0
 }) => {
-    let renderer;
-    let controls;
-    let scene;
-    let camera;
-    let globe;
+    const scene = new THREE.Scene();
 
-    let satEarth;
-    let earthHeights;
+    const starTexture = textureloader.load('textures/stars/8k_stars_milky_way.jpeg');
+    starTexture.encoding = THREE.sRGBEncoding;
+    scene.background = starTexture;
 
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 15000);
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 15000);
 
     const shadersPromises = [
         loadFile("shaders/earth/vertex.glsl"),
@@ -47,8 +43,8 @@ export const init = async ({
     ];
     const [vertexShader, fragmentShader] = await Promise.all(shadersPromises);
 
-    earthHeights = textureloader.load(bumpMap);
-    satEarth = textureloader.load(earthTexture);
+    const earthHeights = textureloader.load(bumpMap);
+    const satEarth = textureloader.load(earthTexture);
     satEarth.encoding = THREE.sRGBEncoding;
 
     const geometry = new THREE.SphereGeometry(170, 512, 512);
@@ -65,14 +61,14 @@ export const init = async ({
         vertexShader
     });
 
-    globe = new THREE.Mesh(geometry, material);
+    const globe = new THREE.Mesh(geometry, material);
     globe.position.set(0, 0, 0);
     globe.rotation.y = defaultRotation;
     scene.add(globe);
 
     camera.position.z = 500;
 
-    renderer = new THREE.WebGLRenderer({
+    const renderer = new THREE.WebGLRenderer({
         powerPreference: "high-performance",
         antialias: true,
         alpha: true,
@@ -80,7 +76,7 @@ export const init = async ({
     });
     renderer.setPixelRatio(window.devicePixelRatio);
 
-    controls = new OrbitControls(camera, canvas);
+    const controls = new OrbitControls(camera, canvas);
     controls.minDistance = 250;
     controls.maxDistance = 1100;
     controls.enabled = controlsEnabled;
@@ -103,29 +99,15 @@ export const init = async ({
 }
 
 const addSun = async ({ scene }) => {
-    const sunTextureMap = textureloader.load("textures/2k_sun.jpeg");
-
-    const shadersPromises = [
-        loadFile("shaders/sun/vertex.glsl"),
-        loadFile("shaders/sun/fragment.glsl")
-    ];
-    const [vertexShader, fragmentShader] = await Promise.all(shadersPromises);
+    const sunTextureMap = textureloader.load("textures/sun/2k_sun.jpeg");
 
     const geometry = new THREE.SphereGeometry(2000, 512, 512);
-    // const material = new THREE.ShaderMaterial({
-    //     uniforms: {
-    //         u_time: { type: 'f', value: 0 },
-    //         sunTexture: { type: "sampler2D", value: sunTextureMap }
-    //     },
-    //     fragmentShader,
-    //     vertexShader
-    // });
     const material = new THREE.MeshBasicMaterial({
         map: sunTextureMap
     });
 
     const sunMesh = new THREE.Mesh(geometry, material);
-    sunMesh.position.set(0, 0, -8000);
+    sunMesh.position.set(0, 0, -10000);
     scene.add(sunMesh);
 
     return sunMesh;
@@ -133,8 +115,8 @@ const addSun = async ({ scene }) => {
 
 
 const addMoon = async ({ scene }) => {
-    const moonTexture = textureloader.load("textures/moonmap4k.jpg");
-    const moonBumpMap = textureloader.load("textures/moonbump4k.jpg");
+    const moonTexture = textureloader.load("textures/moon/moonmap4k.jpg");
+    const moonBumpMap = textureloader.load("textures/moon/moonbump4k.jpg");
 
     const shadersPromises = [
         loadFile("shaders/moon/vertex.glsl"),

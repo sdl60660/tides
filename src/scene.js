@@ -66,7 +66,7 @@ export const init = async ({
     globe.rotation.y = defaultRotation;
     scene.add(globe);
 
-    camera.position.z = 700;
+    camera.position.z = 900;
 
     const renderer = new THREE.WebGLRenderer({
         powerPreference: "high-performance",
@@ -78,7 +78,7 @@ export const init = async ({
 
     const controls = new OrbitControls(camera, canvas);
     controls.minDistance = 250;
-    controls.maxDistance = 1600;
+    controls.maxDistance = 1700;
     controls.enabled = controlsEnabled;
 
     const moon = await addMoon({ scene });

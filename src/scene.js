@@ -39,16 +39,15 @@ export const init = async ({
     let earthHeights;
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 15000);
 
     const shadersPromises = [
-        loadFile("shaders/vertex.glsl"),
-        loadFile("shaders/fragment.glsl")
+        loadFile("shaders/earth/vertex.glsl"),
+        loadFile("shaders/earth/fragment.glsl")
     ];
-
     const [vertexShader, fragmentShader] = await Promise.all(shadersPromises);
-    earthHeights = textureloader.load(bumpMap);
 
+    earthHeights = textureloader.load(bumpMap);
     satEarth = textureloader.load(earthTexture);
     satEarth.encoding = THREE.sRGBEncoding;
 
@@ -58,6 +57,7 @@ export const init = async ({
             u_color1: { type: 'v3', value: rgb(61, 142, 241) },
             u_color2: { type: 'v3', value: rgb(0, 46, 76) },
             u_time: { type: 'f', value: 0 },
+            exaggeration: { type: 'f', value: 10.0 },
             earthHeights: { type: "sampler2D", value: earthHeights },
             earthSatTexture: { type: "sampler2D", value: satEarth }
         },
@@ -85,6 +85,9 @@ export const init = async ({
     controls.maxDistance = 1100;
     controls.enabled = controlsEnabled;
 
+    const moon = await addMoon({ scene });
+    const sun = await addSun({ scene });
+
     return {
         canvas,
         renderer,
@@ -92,9 +95,70 @@ export const init = async ({
         scene,
         camera,
         globe,
+        moon,
+        sun,
         satEarth,
         earthHeights
     };
+}
+
+const addSun = async ({ scene }) => {
+    const sunTextureMap = textureloader.load("textures/2k_sun.jpeg");
+
+    const shadersPromises = [
+        loadFile("shaders/sun/vertex.glsl"),
+        loadFile("shaders/sun/fragment.glsl")
+    ];
+    const [vertexShader, fragmentShader] = await Promise.all(shadersPromises);
+
+    const geometry = new THREE.SphereGeometry(2000, 512, 512);
+    // const material = new THREE.ShaderMaterial({
+    //     uniforms: {
+    //         u_time: { type: 'f', value: 0 },
+    //         sunTexture: { type: "sampler2D", value: sunTextureMap }
+    //     },
+    //     fragmentShader,
+    //     vertexShader
+    // });
+    const material = new THREE.MeshBasicMaterial({
+        map: sunTextureMap
+    });
+
+    const sunMesh = new THREE.Mesh(geometry, material);
+    sunMesh.position.set(0, 0, -8000);
+    scene.add(sunMesh);
+
+    return sunMesh;
+}
+
+
+const addMoon = async ({ scene }) => {
+    const moonTexture = textureloader.load("textures/moonmap4k.jpg");
+    const moonBumpMap = textureloader.load("textures/moonbump4k.jpg");
+
+    const shadersPromises = [
+        loadFile("shaders/moon/vertex.glsl"),
+        loadFile("shaders/moon/fragment.glsl")
+    ];
+    const [vertexShader, fragmentShader] = await Promise.all(shadersPromises);
+
+    const geometry = new THREE.SphereGeometry(40, 512, 512);
+    const material = new THREE.ShaderMaterial({
+        uniforms: {
+            u_time: { type: 'f', value: 0 },
+            exaggeration: { type: 'f', value: 0.7 },
+            moonBumpMap: { type: "sampler2D", value: moonBumpMap },
+            moonTexture: { type: "sampler2D", value: moonTexture }
+        },
+        fragmentShader,
+        vertexShader
+    });
+
+    const moonMesh = new THREE.Mesh(geometry, material);
+    moonMesh.position.set(0, 20, 400);
+    scene.add(moonMesh);
+
+    return moonMesh;
 }
 
 export const animate = ({ scene, camera, renderer, controls }) => {

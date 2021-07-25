@@ -5,6 +5,7 @@
 
 	export let bumpMap: string = "textures/earth-height.png";
 	export let earthTexture: string = "textures/satellite-earth.jpg";
+	// export let earthTexture: string = "textures/8k_earth_daymap.jpeg";
 
 	export let defaultRotation = 0;
 	export let controlsEnabled: boolean = true;

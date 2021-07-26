@@ -30,13 +30,32 @@ export const init = async ({
     defaultRotation = 0
 }) => {
     const scene = new THREE.Scene();
+    addBackground({ scene });
 
-    const starTexture = textureloader.load('textures/stars/8k_stars_milky_way.jpeg');
-    starTexture.encoding = THREE.sRGBEncoding;
-    scene.background = starTexture;
+    const renderer = initRenderer({ canvas });
 
     const camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 15000);
+    camera.position.z = 900;
 
+    const globe = await initGlobe({ scene, earthTexture, bumpMap, defaultRotation });
+    const controls = initControls({ camera, canvas, controlsEnabled });
+
+    const moon = await addMoon({ scene });
+    const sun = await addSun({ scene });
+
+    return {
+        canvas,
+        renderer,
+        controls,
+        scene,
+        camera,
+        globe,
+        moon,
+        sun,
+    };
+}
+
+const initGlobe = async ({ scene, earthTexture, bumpMap, defaultRotation }) => {
     const shadersPromises = [
         loadFile("shaders/earth/vertex.glsl"),
         loadFile("shaders/earth/fragment.glsl")
@@ -66,8 +85,25 @@ export const init = async ({
     globe.rotation.y = defaultRotation;
     scene.add(globe);
 
-    camera.position.z = 900;
+    return globe;
+}
 
+const initControls = ({ camera, canvas, controlsEnabled }) => {
+    const controls = new OrbitControls(camera, canvas);
+    controls.minDistance = 250;
+    controls.maxDistance = 2000;
+    controls.enabled = controlsEnabled;
+
+    return controls;
+}
+
+const addBackground = ({ scene }) => {
+    const starTexture = textureloader.load('textures/stars/8k_stars_milky_way.jpeg');
+    starTexture.encoding = THREE.sRGBEncoding;
+    scene.background = starTexture;
+}
+
+const initRenderer = ({ canvas }) => {
     const renderer = new THREE.WebGLRenderer({
         powerPreference: "high-performance",
         antialias: true,
@@ -76,26 +112,7 @@ export const init = async ({
     });
     renderer.setPixelRatio(window.devicePixelRatio);
 
-    const controls = new OrbitControls(camera, canvas);
-    controls.minDistance = 250;
-    controls.maxDistance = 1700;
-    controls.enabled = controlsEnabled;
-
-    const moon = await addMoon({ scene });
-    const sun = await addSun({ scene });
-
-    return {
-        canvas,
-        renderer,
-        controls,
-        scene,
-        camera,
-        globe,
-        moon,
-        sun,
-        satEarth,
-        earthHeights
-    };
+    return renderer;
 }
 
 const addSun = async ({ scene }) => {
@@ -124,7 +141,7 @@ const addMoon = async ({ scene }) => {
     ];
     const [vertexShader, fragmentShader] = await Promise.all(shadersPromises);
 
-    const geometry = new THREE.SphereGeometry(40, 512, 512);
+    const geometry = new THREE.SphereGeometry(46, 512, 512);
     const material = new THREE.ShaderMaterial({
         uniforms: {
             u_time: { type: 'f', value: 0 },

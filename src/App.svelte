@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { createScene, animate } from "./scene";
+	import { createScene, animate, resize } from "./scene";
 	import * as THREE from "three";
 
 	export let bumpMap: string = "textures/earth/earth-height.png";
@@ -21,8 +21,10 @@
 	let width: number;
 	let height: number;
 
+	let settings;
+
 	onMount(async () => {
-		const settings = await createScene({
+		settings = await createScene({
 			canvas,
 			bumpMap,
 			earthTexture,
@@ -32,19 +34,21 @@
 
 		animate(settings);
 	});
+
+	// Resize on width/height changes if scene has been initialized
+	$: if (settings) {
+		resize(settings, width, height);
+	}
 </script>
+
+<svelte:window bind:innerWidth={width} bind:innerHeight={height} />
 
 <div
 	class="wrapper"
 	bind:this={container}
 	style={`width: ${containerWidth}; height: ${containerHeight};`}
 >
-	<canvas
-		class="three-canvas"
-		bind:clientWidth={width}
-		bind:clientHeight={height}
-		bind:this={canvas}
-	/>
+	<canvas class="three-canvas" bind:this={canvas} />
 </div>
 
 <style>

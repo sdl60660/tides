@@ -66,7 +66,9 @@ const initGlobe = async ({ scene, earthTexture, bumpMap, defaultRotation }) => {
     const satEarth = textureloader.load(earthTexture);
     satEarth.encoding = THREE.sRGBEncoding;
 
-    const geometry = new THREE.SphereGeometry(170, 512, 512);
+    console.log(earthHeights);
+
+    const geometry = new THREE.SphereGeometry(170, 1024, 1024);
     const material = new THREE.ShaderMaterial({
         uniforms: {
             u_color1: { type: 'v3', value: rgb(61, 142, 241) },
@@ -90,8 +92,11 @@ const initGlobe = async ({ scene, earthTexture, bumpMap, defaultRotation }) => {
 
 const initControls = ({ camera, canvas, controlsEnabled }) => {
     const controls = new OrbitControls(camera, canvas);
+
+    controls.enablePan = false;
     controls.minDistance = 250;
     controls.maxDistance = 2000;
+
     controls.enabled = controlsEnabled;
 
     return controls;
@@ -166,17 +171,16 @@ export const animate = ({ scene, camera, renderer, controls }) => {
     renderer.render(scene, camera);
 };
 
-export const resize = ({ camera, renderer }) => {
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    camera.aspect = window.innerWidth / window.innerHeight;
+export const resize = ({ camera, renderer }, width, height) => {
+    renderer.setSize(width, height)
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
 };
 
 export const createScene = async ({ canvas, bumpMap, earthTexture, controlsEnabled, defaultRotation }) => {
     const settings = await init({ canvas, bumpMap, earthTexture, controlsEnabled, defaultRotation });
 
-    resize(settings);
-    window.addEventListener('resize', resize);
+    resize(settings, window.innerWidth, window.innerHeight);
 
     return settings;
 }

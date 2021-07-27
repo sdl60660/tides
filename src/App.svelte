@@ -1,11 +1,13 @@
 <script lang="ts">
     import Canvas from "./Canvas.svelte";
+    import Loader from "./Loader.svelte";
+
     import { csv, json } from "d3-fetch";
 
     const dataPromises = [
-        // csv("data/hourly_sealevel_data.csv"),
+        csv("data/hourly_sealevel_data.csv"),
         // Sea levels by time and station ID for the month of June
-        csv("data/hourly_sealevel_data_june2021.csv"),
+        // csv("data/hourly_sealevel_data_june2021.csv"),
         json("data/station_data.json"),
     ];
 
@@ -15,7 +17,7 @@
 </script>
 
 {#await dataLoad}
-    <p>Loading...</p>
+    <Loader />
 {:then data}
     <Canvas tideData={data[0]} stationData={data[1]} />
 {/await}

@@ -3,15 +3,20 @@
 	import { createScene, animate, resize } from "./scene";
 	import * as THREE from "three";
 
-	export let bumpMap: string = "textures/earth/earth-height.png";
-	export let earthTexture: string = "textures/earth/satellite-earth.jpg";
-	// export let earthTexture: string = "textures/earth/8k_earth_daymap.jpeg";
-
 	export let defaultRotation = 0;
 	export let controlsEnabled: boolean = true;
 
 	export let containerWidth = "100vw";
 	export let containerHeight = "100vh";
+
+	const textureloader = new THREE.TextureLoader();
+	export let bumpMap: THREE.Texture = textureloader.load(
+		"textures/earth/earth-height.png"
+	);
+	export let earthTexture: THREE.Texture = textureloader.load(
+		"textures/earth/satellite-earth.jpg"
+	);
+	// export let earthTexture: string = "textures/earth/8k_earth_daymap.jpeg";
 
 	export let stationData;
 	export let tideData;

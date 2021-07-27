@@ -21,11 +21,10 @@ const loadFile = (filename) => {
 
 const textureloader = new THREE.TextureLoader();
 
-
 export const init = async ({
     canvas,
-    earthTexture = "textures/earth/satellite-earth.jpg",
-    bumpMap = "textures/earth/earth-height.png",
+    earthTexture = textureloader.load("textures/earth/satellite-earth.jpg"),
+    bumpMap = textureloader.load("textures/earth/earth-height.png"),
     controlsEnabled = true,
     defaultRotation = 0
 }) => {
@@ -62,9 +61,9 @@ const initGlobe = async ({ scene, earthTexture, bumpMap, defaultRotation }) => {
     ];
     const [vertexShader, fragmentShader] = await Promise.all(shadersPromises);
 
-    const earthHeights = textureloader.load(bumpMap);
-    const satEarth = textureloader.load(earthTexture);
-    satEarth.encoding = THREE.sRGBEncoding;
+    // const earthHeights = textureloader.load(bumpMap);
+    // const satEarth = textureloader.load(earthTexture);
+    // satEarth.encoding = THREE.sRGBEncoding;
 
     const geometry = new THREE.SphereGeometry(170, 1024, 1024);
     const material = new THREE.ShaderMaterial({
@@ -73,8 +72,8 @@ const initGlobe = async ({ scene, earthTexture, bumpMap, defaultRotation }) => {
             u_color2: { type: 'v3', value: rgb(0, 46, 76) },
             u_time: { type: 'f', value: 0 },
             exaggeration: { type: 'f', value: 10.0 },
-            earthHeights: { type: "sampler2D", value: earthHeights },
-            earthSatTexture: { type: "sampler2D", value: satEarth }
+            earthHeights: { type: "sampler2D", value: bumpMap },
+            earthSatTexture: { type: "sampler2D", value: earthTexture }
         },
         fragmentShader,
         vertexShader
@@ -101,7 +100,7 @@ const initControls = ({ camera, canvas, controlsEnabled }) => {
 }
 
 const addBackground = ({ scene }) => {
-    const starTexture = textureloader.load('textures/stars/8k_stars_milky_way.jpeg');
+    const starTexture = textureloader.load('textures/stars/2k_stars_milky_way.jpeg');
     starTexture.encoding = THREE.sRGBEncoding;
     scene.background = starTexture;
 }

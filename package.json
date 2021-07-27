@@ -37,6 +37,7 @@
     "d3-scale": "^4.0.0",
     "everpolate": "^0.0.3",
     "sirv-cli": "^1.0.0",
+    "svelte-loading-spinners": "^0.1.7",
     "three": "^0.130.1"
   }
 }

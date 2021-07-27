@@ -1,5 +1,7 @@
 <script lang="ts">
     import Canvas from "./Canvas.svelte";
+    import Loader from "./Loader.svelte";
+
     import { csv, json } from "d3-fetch";
 
     const dataPromises = [
@@ -15,7 +17,7 @@
 </script>
 
 {#await dataLoad}
-    <p>Loading...</p>
+    <Loader />
 {:then data}
     <Canvas tideData={data[0]} stationData={data[1]} />
 {/await}

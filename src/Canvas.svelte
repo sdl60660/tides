@@ -2,6 +2,8 @@
 	import { onMount } from "svelte";
 	import { createScene, animate, resize } from "./scene";
 	import * as THREE from "three";
+	import { scaleLinear } from "d3-scale";
+	import { extent } from "d3-array";
 
 	export let bumpMap: string = "textures/earth/earth-height.png";
 	export let earthTexture: string = "textures/earth/satellite-earth.jpg";
@@ -26,23 +28,6 @@
 	let settings: any;
 
 	onMount(async () => {
-		const snapshotData = tideData
-			.filter(
-				(d) =>
-					d.time.startsWith("2021-06-21T07:00") &&
-					d.sea_level !== "NaN"
-			)
-			.map((d) => {
-				const matchingStation = stationData[d.ssc_id];
-				return {
-					...d,
-					sea_level: +d.sea_level,
-					lat: matchingStation.lat,
-					lng: matchingStation.lon,
-				};
-			});
-		console.log(snapshotData);
-
 		settings = await createScene({
 			canvas,
 			bumpMap,
@@ -52,7 +37,62 @@
 		});
 
 		animate(settings);
+
+		const globeRadius = settings.globe.geometry.parameters.radius;
+
+		const snapshotData = tideData
+			.filter(
+				(d) =>
+					d.time.startsWith("2021-06-08T12:00:00Z") &&
+					d.sea_level !== "NaN"
+			)
+			.map((d) => {
+				const matchingStation = stationData[d.ssc_id];
+				return {
+					...d,
+					sea_level: +d.sea_level,
+					lat: matchingStation.lat,
+					lng: matchingStation.lng,
+				};
+			});
+
+		console.log(snapshotData);
+
+		const heightScale = scaleLinear()
+			.domain(extent(snapshotData, (d) => d.sea_level))
+			.range([1, 100]);
+
+		snapshotData.forEach(({ lat, lng, sea_level }) => {
+			const height = heightScale(sea_level);
+			const bar = plotBar({ lat, lng, height }, globeRadius);
+			settings.scene.add(bar);
+		});
 	});
+
+	const plotBar = (
+		{ lat, lng, height, barWidth = 3, color = "red" },
+		globeRadius
+	) => {
+		// const geometry = new THREE.CylinderGeometry( 1, 1, height, 35 );
+		const geometry = new THREE.BoxBufferGeometry(
+			barWidth,
+			barWidth,
+			height
+		);
+		const material = new THREE.MeshBasicMaterial({ color });
+		const bar = new THREE.Mesh(geometry, material);
+
+		const phi = (90 - lat) * (Math.PI / 180);
+		const theta = (180 + lng) * (Math.PI / 180);
+
+		bar.position.x = -(globeRadius * Math.sin(phi) * Math.cos(theta));
+		bar.position.y = globeRadius * Math.cos(phi);
+		bar.position.z = globeRadius * Math.sin(phi) * Math.sin(theta);
+
+		bar.lookAt(new THREE.Vector3());
+
+		return bar;
+	};
 
 	// Resize on width/height changes if scene has been initialized
 	$: if (settings) {

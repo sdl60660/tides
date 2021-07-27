@@ -27,7 +27,8 @@ void main(void) {
     // if(bumpData.a < 0.05) {
     //     gl_FragColor = vec4(c2, 0.5);
     // } else {
-    //     gl_FragColor = ((bumpData.a) * (1. - bumpData.r)) * vec4(c1, 1.) * 0.65;
+        // gl_FragColor = satData * 0.85;
+        // gl_FragColor = ((bumpData.a) * (1. - bumpData.r)) * vec4(c1, 1.) * 0.65;
     // }
 
     // For shading by sat data

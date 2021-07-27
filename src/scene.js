@@ -66,8 +66,6 @@ const initGlobe = async ({ scene, earthTexture, bumpMap, defaultRotation }) => {
     const satEarth = textureloader.load(earthTexture);
     satEarth.encoding = THREE.sRGBEncoding;
 
-    console.log(earthHeights);
-
     const geometry = new THREE.SphereGeometry(170, 1024, 1024);
     const material = new THREE.ShaderMaterial({
         uniforms: {

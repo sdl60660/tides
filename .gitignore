@@ -2,3 +2,5 @@
 /public/build/
 
 .DS_Store
+
+/data_processing/raw_data

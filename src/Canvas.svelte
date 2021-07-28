@@ -40,12 +40,12 @@
 
 		const globeRadius = settings.globe.geometry.parameters.radius;
 		const { snapshotData, heightScale } = loadData({
-			dateTime: "2021-06-08T12:00:00Z",
+			dateTime: "2020-10-08T12:00:00Z",
 		});
 
 		snapshotData.forEach(({ lat, lng, sea_level }) => {
 			const height = heightScale(sea_level);
-			const geometry = new THREE.BoxBufferGeometry(5, 5, height);
+			const geometry = new THREE.BoxBufferGeometry(3, 3, height);
 			const material = new THREE.MeshBasicMaterial({ color: "red" });
 
 			const mesh = plotOnGlobe({
@@ -74,7 +74,7 @@
 
 		const heightScale = scaleLinear()
 			.domain(extent(snapshotData, (d) => d.sea_level))
-			.range([1, 100]);
+			.range([1, 200]);
 
 		return { snapshotData, heightScale };
 	};

@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { createScene, animate, resize } from "./scene";
+	import { createScene, animate, resize, plotOnGlobe } from "./scene";
 	import * as THREE from "three";
+	import { scaleLinear } from "d3-scale";
+	import { extent } from "d3-array";
 
 	export let bumpMap: string = "textures/earth/earth-height.png";
 	export let earthTexture: string = "textures/earth/satellite-earth.jpg";
@@ -26,23 +28,6 @@
 	let settings: any;
 
 	onMount(async () => {
-		const snapshotData = tideData
-			.filter(
-				(d) =>
-					d.time.startsWith("2021-06-21T07:00") &&
-					d.sea_level !== "NaN"
-			)
-			.map((d) => {
-				const matchingStation = stationData[d.ssc_id];
-				return {
-					...d,
-					sea_level: +d.sea_level,
-					lat: matchingStation.lat,
-					lng: matchingStation.lon,
-				};
-			});
-		console.log(snapshotData);
-
 		settings = await createScene({
 			canvas,
 			bumpMap,
@@ -52,7 +37,47 @@
 		});
 
 		animate(settings);
+
+		const globeRadius = settings.globe.geometry.parameters.radius;
+		const { snapshotData, heightScale } = loadData({
+			dateTime: "2021-06-08T12:00:00Z",
+		});
+
+		snapshotData.forEach(({ lat, lng, sea_level }) => {
+			const height = heightScale(sea_level);
+			const geometry = new THREE.BoxBufferGeometry(5, 5, height);
+			const material = new THREE.MeshBasicMaterial({ color: "red" });
+
+			const mesh = plotOnGlobe({
+				lat,
+				lng,
+				geometry,
+				material,
+				globeRadius,
+				scene: settings.scene,
+			});
+		});
 	});
+
+	const loadData = ({ dateTime }) => {
+		const snapshotData = tideData
+			.filter((d) => d.time.startsWith(dateTime) && d.sea_level !== "NaN")
+			.map((d) => {
+				const matchingStation = stationData[d.ssc_id];
+				return {
+					...d,
+					sea_level: +d.sea_level,
+					lat: matchingStation.lat,
+					lng: matchingStation.lng,
+				};
+			});
+
+		const heightScale = scaleLinear()
+			.domain(extent(snapshotData, (d) => d.sea_level))
+			.range([1, 100]);
+
+		return { snapshotData, heightScale };
+	};
 
 	// Resize on width/height changes if scene has been initialized
 	$: if (settings) {

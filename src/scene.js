@@ -4,6 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { zip } from 'd3-array';
 
 const rgb = (r, g, b) => {
     return new THREE.Vector3(r, g, b);
@@ -161,6 +162,32 @@ const addMoon = async ({ scene }) => {
     scene.add(moonMesh);
 
     return moonMesh;
+}
+
+export const plotOnGlobe = (
+    { lat, lng, geometry, material, globeRadius, scene }
+) => {
+    // const geometry = new THREE.CylinderGeometry( 1, 1, height, 35 );
+    const mesh = new THREE.Mesh(geometry, material);
+
+    const { x, y, z } = coordinatesToPosition({ lat, lng, globeRadius });
+    mesh.position.set(x, y, z);
+
+    mesh.lookAt(new THREE.Vector3());
+    scene.add(mesh);
+
+    return mesh;
+};
+
+const coordinatesToPosition = ({ lat, lng, globeRadius }) => {
+    const phi = (90 - lat) * (Math.PI / 180);
+    const theta = (180 + lng) * (Math.PI / 180);
+
+    const x = -(globeRadius * Math.sin(phi) * Math.cos(theta));
+    const y = globeRadius * Math.cos(phi);
+    const z = globeRadius * Math.sin(phi) * Math.sin(theta);
+
+    return ({ x, y, z })
 }
 
 export const animate = ({ scene, camera, renderer, controls }) => {

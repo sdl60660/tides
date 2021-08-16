@@ -40,7 +40,7 @@
 
 		const globeRadius = settings.globe.geometry.parameters.radius;
 		const { snapshotData, heightScale } = loadData({
-			dateTime: "2020-10-08T12:00:00Z",
+			dateTime: "2020-07-08T12:00:00Z",
 		});
 
 		snapshotData.forEach(({ lat, lng, sea_level }) => {

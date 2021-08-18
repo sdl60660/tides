@@ -4,6 +4,11 @@
 	import * as THREE from "three";
 	import { scaleLinear } from "d3-scale";
 	import { extent } from "d3-array";
+	// import interpolateArray from "2d-bicubic-interpolate";
+	// import { geoEquirectangular } from "d3-geo";
+
+	import { point, featureCollection } from "@turf/helpers";
+	import interpolate from "@turf/interpolate";
 
 	export let bumpMap: string = "textures/earth/earth-height.png";
 	export let earthTexture: string = "textures/earth/satellite-earth.jpg";
@@ -23,6 +28,7 @@
 
 	let container: HTMLDivElement;
 	let canvas: HTMLCanvasElement;
+	let dummyCanvas: HTMLCanvasElement;
 	let width: number;
 	let height: number;
 	let settings: any;
@@ -57,6 +63,51 @@
 				scene: settings.scene,
 			});
 		});
+
+		// const sampleData = snapshotData.map(({ lat, lng, sea_level }) => ({
+		// 	x: lng + 200,
+		// 	y: lat + 200,
+		// 	z: sea_level,
+		// }));
+		const sampleData = snapshotData.map(({ lat, lng, sea_level }) =>
+			point([lng, lat], { sea_level })
+		);
+
+		// https://www.npmjs.com/package/@turf/interpolate
+		const interpolationOptions = {
+			gridType: "points",
+			property: "sea_level",
+			units: "miles",
+		};
+
+		const start = performance.now();
+		const grid = interpolate(
+			featureCollection(sampleData),
+			20,
+			interpolationOptions
+		);
+
+		console.log(grid, performance.now() - start);
+
+		const ctx = dummyCanvas.getContext("2d");
+		ctx.canvas.width = 1024;
+		ctx.canvas.height = 512;
+		ctx.fillStyle = "#000";
+		ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+		console.log(imageData);
+
+		// console.log(sampleData);
+		// console.log(interpolateArray(sampleData, 1));
+
+		// const interpolatedData = interpolateArray(sampleData, 5);
+
+		// console.log({ sampleData, interpolatedData });
+		// const projection = geoEquirectangular();
+		// snapshotData.map(({ lat, lng }) => {
+		// 	console.log(projection(lng, lat));
+		// });
 	});
 
 	const loadData = ({ dateTime }) => {
@@ -93,6 +144,7 @@
 	style={`width: ${containerWidth}; height: ${containerHeight};`}
 >
 	<canvas class="three-canvas" bind:this={canvas} />
+	<canvas class="dummy-canvas" bind:this={dummyCanvas} />
 </div>
 
 <style>
@@ -101,8 +153,16 @@
 		height: 100vh;
 	} */
 
-	canvas {
+	.three-canvas {
 		width: 100%;
 		height: 100%;
+	}
+
+	.dummy-canvas {
+		position: absolute;
+		z-index: -100;
+		visibility: hidden;
+		height: 512px;
+		width: 1024px;
 	}
 </style>

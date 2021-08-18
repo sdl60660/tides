@@ -31,6 +31,9 @@
     "typescript": "^4.0.0"
   },
   "dependencies": {
+    "@turf/helpers": "^6.5.0",
+    "@turf/interpolate": "^6.5.0",
+    "2d-bicubic-interpolate": "^1.0.7",
     "d3-array": "^3.0.1",
     "d3-fetch": "^3.0.1",
     "d3-geo": "^3.0.1",

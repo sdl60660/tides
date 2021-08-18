@@ -4,11 +4,10 @@
 	import * as THREE from "three";
 	import { scaleLinear } from "d3-scale";
 	import { extent } from "d3-array";
-	// import interpolateArray from "2d-bicubic-interpolate";
-	// import { geoEquirectangular } from "d3-geo";
 
 	import { point, featureCollection } from "@turf/helpers";
-	import interpolate from "@turf/interpolate";
+	import interpolate from "./utils/customInterpolate";
+	// import interpolate from "@turf/interpolate";
 
 	export let bumpMap: string = "textures/earth/earth-height.png";
 	export let earthTexture: string = "textures/earth/satellite-earth.jpg";
@@ -28,7 +27,6 @@
 
 	let container: HTMLDivElement;
 	let canvas: HTMLCanvasElement;
-	let dummyCanvas: HTMLCanvasElement;
 	let width: number;
 	let height: number;
 	let settings: any;
@@ -74,40 +72,67 @@
 		);
 
 		// https://www.npmjs.com/package/@turf/interpolate
-		const interpolationOptions = {
-			gridType: "points",
-			property: "sea_level",
-			units: "miles",
-		};
+		const gridPieces = ["west", "east"].map((hemisphere) => {
+			const interpolationOptions = {
+				gridType: "points",
+				property: "sea_level",
+				units: "miles",
+				weight: 1,
+				hemisphere: "east",
+			};
 
-		const start = performance.now();
-		const grid = interpolate(
-			featureCollection(sampleData),
-			20,
-			interpolationOptions
+			// const start = performance.now();
+			const grid = interpolate(
+				featureCollection(sampleData),
+				10,
+				interpolationOptions
+			);
+
+			// console.log(grid, performance.now() - start);
+			return grid;
+		});
+
+		const grid = gridPieces.map((d) => d.features).flat();
+		console.log(grid);
+
+		// https://threejs.org/docs/#api/en/textures/DataTexture2DArray
+
+		const width = 1024;
+		const height = 512;
+		const depth = 100;
+
+		const size = width * height;
+		const data = new Uint8Array(3 * size * depth);
+
+		for (let i = 0; i < depth; i++) {
+			const color = new THREE.Color(
+				Math.random(),
+				Math.random(),
+				Math.random()
+			);
+			const r = Math.floor(color.r * 255);
+			const g = Math.floor(color.g * 255);
+			const b = Math.floor(color.b * 255);
+
+			for (let j = 0; j < size; j++) {
+				const stride = (i * size + j) * 3;
+
+				data[stride] = r;
+				data[stride + 1] = g;
+				data[stride + 2] = b;
+			}
+		}
+
+		// used the buffer to create a DataTexture2DArray
+
+		const texture = new THREE.DataTexture2DArray(
+			data,
+			width,
+			height,
+			depth
 		);
-
-		console.log(grid, performance.now() - start);
-
-		const ctx = dummyCanvas.getContext("2d");
-		ctx.canvas.width = 1024;
-		ctx.canvas.height = 512;
-		ctx.fillStyle = "#000";
-		ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-		const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-		console.log(imageData);
-
-		// console.log(sampleData);
-		// console.log(interpolateArray(sampleData, 1));
-
-		// const interpolatedData = interpolateArray(sampleData, 5);
-
-		// console.log({ sampleData, interpolatedData });
-		// const projection = geoEquirectangular();
-		// snapshotData.map(({ lat, lng }) => {
-		// 	console.log(projection(lng, lat));
-		// });
+		texture.format = THREE.RGBFormat;
+		texture.type = THREE.UnsignedByteType;
 	});
 
 	const loadData = ({ dateTime }) => {
@@ -144,7 +169,6 @@
 	style={`width: ${containerWidth}; height: ${containerHeight};`}
 >
 	<canvas class="three-canvas" bind:this={canvas} />
-	<canvas class="dummy-canvas" bind:this={dummyCanvas} />
 </div>
 
 <style>
@@ -156,13 +180,5 @@
 	.three-canvas {
 		width: 100%;
 		height: 100%;
-	}
-
-	.dummy-canvas {
-		position: absolute;
-		z-index: -100;
-		visibility: hidden;
-		height: 512px;
-		width: 1024px;
 	}
 </style>
